@@ -3,7 +3,7 @@ const body_parser = require('body-parser');
 const mongoose = require('mongoose');
 const app = express();
 require('dotenv').config();
-const session = require('session');
+const {MongoClient} = require('mongodb');
 const PORT = process.env.PORT || 8080;
 
 const mongoose_url = process.env.mongoose_url;
@@ -27,7 +27,7 @@ app.post('/reservations/register',function (req, res) {
         name: user_name
     }).then((user) => {
         if (user) {
-            console.log('User name already registered');
+            console.log('Username already registered');
             res.json('User already exists');
         }
         let new_user = new user_model({
@@ -91,6 +91,38 @@ app.get('/reservations/user',function (req, res){
         })
 });
 
+/*
+app.get('/reservations/all_reservations', async function(req,res){
+      
+    
+	const client = new MongoClient(mongoose_url, {
+		useUnifiedTopology: true,
+		useNewUrlParser: true,
+    });
+
+    try {
+        await client.connect();
+    
+    }catch(err){
+        console.log(err);
+        res.json(err)
+    }
+   
+})
+*/
+
+app.get('/reservations/all_reservations', async function(req,res){
+      
+    MongoClient.connect(mongoose_url, function(err, db) {
+        if (err) throw err;
+        var dbo = db.db("test");
+        dbo.collection("reservations").find({}).toArray(function(err, result) {
+            if (err) throw err;
+            console.log(result);
+            res.json(result);
+        });
+      }); 
+})
 
 
 
@@ -103,3 +135,5 @@ mongoose.connect(mongoose_url, {
     console.log('Server running on port:'+PORT);
     app.listen(PORT);
 });
+
+
