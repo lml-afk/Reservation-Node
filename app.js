@@ -5,6 +5,7 @@ const app = express();
 require('dotenv').config();
 const {MongoClient} = require('mongodb');
 const PORT = process.env.PORT || 8080;
+var merge = require('merge');
 
 const mongoose_url = process.env.mongoose_url;
 
@@ -91,26 +92,6 @@ app.get('/reservations/user',function (req, res){
         })
 });
 
-/*
-app.get('/reservations/all_reservations', async function(req,res){
-      
-    
-	const client = new MongoClient(mongoose_url, {
-		useUnifiedTopology: true,
-		useNewUrlParser: true,
-    });
-
-    try {
-        await client.connect();
-    
-    }catch(err){
-        console.log(err);
-        res.json(err)
-    }
-   
-})
-*/
-
 app.get('/reservations/all_reservations', async function(req,res){
       
     MongoClient.connect(mongoose_url, function(err, db) {
@@ -124,7 +105,39 @@ app.get('/reservations/all_reservations', async function(req,res){
       }); 
 })
 
+app.patch('/reservations/update:id', function(req,res){
 
+    const id = req.body.reservation_id;
+    const time_to_change = req.body.new_time;
+
+    const end_time = new Date(time_to_change);
+    end_time.setHours(end_time.getHours() +1);
+    
+    const merged =[];
+
+    reservation_model.findById(id, function (err, original){
+        if(err){
+            res.send(err);
+        }else{
+            console.log(original)
+            merged.push(original)
+        }}),
+
+        reservation_model.findByIdAndUpdate(
+        {_id: id},
+        {
+        start_time: new Date(time_to_change),
+        end_time: new Date(end_time)
+        },
+        function(err, result){
+            if(err){
+                res.json(err);
+            }else{
+                merged.push(result)
+                res.json(merged)
+            }}
+      );
+    });
 
 mongoose.connect(mongoose_url, {
     useUnifiedTopology: true,
