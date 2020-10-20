@@ -22,8 +22,8 @@ app.get('/reservations/register', function(req,res){
     const html = '<form action="/reservations/register" method="POST">'+
     'Enter username:' + 
     '<input type="text" name="user_name" id="user_name"/>'+
-    "Enter password: " +
-    '<input type="text" name="user_password" id="user_password"/>' +
+    "Enter age: " +
+    '<input type="text" name="age" id="age"/>' +
     '<br>' +
     '<button type="submit">submit</button>\n</form>'
     res.send(html);
@@ -31,7 +31,7 @@ app.get('/reservations/register', function(req,res){
 
 app.post('/reservations/register',function (req, res) {
     const user_name = req.body.user_name;
-    const user_password = req.body.user_password;
+    const user_age = req.body.age;
 
     console.log(req.body);
 
@@ -44,7 +44,7 @@ app.post('/reservations/register',function (req, res) {
         }
         let new_user = new user_model({
             name: user_name.toLowerCase(),
-            password: user_password,
+            age: user_age,
             reservations: []
         });
         new_user.save().then(() => {
@@ -98,6 +98,7 @@ app.post('/reservations/reservation',function (req, res){
     })
 })
 
+
 app.get('/reservations/user',function (req, res){
         const user_name = req.body.user_name;
 
@@ -128,7 +129,17 @@ app.get('/reservations/all_reservations', async function(req,res){
       }); 
 })
 
+app.get('/reservations/users_age', function(req,res){
 
+        const age_low = req.body.age_low;
+        const age_high = req.body.age_high;
+  
+        user_model.findOne({age:{$gt:age_low, $lt:age_high}},function(err,users){
+            if(err){
+                return res.json(err)
+            }res.json(users)
+        })
+})
 
 app.patch('/reservations/update:id', function(req,res){
 
@@ -165,7 +176,7 @@ app.patch('/reservations/update:id', function(req,res){
       );
     });
 
-    // http://localhost:8080/reservations/user_reservations/?id=5f8f166aa93e373460808cca
+// http://localhost:8080/reservations/user_reservations/?id=5f8f166aa93e373460808cca
 
 app.get('/reservations/user_reservations', function(req,res){
 
@@ -200,18 +211,22 @@ app.get('/reservations/user_reservations', function(req,res){
         }
 })
 
+//http://localhost:8080/reservations/deleteres:id/?id=5f8f1681a93e373460808ccd
 app.post('/reservations/deleteres:id', function (req,res){
-
     const queryObject = url.parse(req.url,true).query
     console.log(queryObject)
-
     if(queryObject.id){
 
     id = queryObject.id;
-        reservation_model.findByIdAndDelete(id).then((user) =>{
+        reservation_model.findByIdAndDelete(id).then((id) =>{
+            if(id){
+                res.send('deleted')
+            }else{
+                res.send('not found')          
+        }}
+    )}
 })
-
-
+        
 mongoose.connect(mongoose_url, {
     useUnifiedTopology: true,
     useNewUrlParser: true
