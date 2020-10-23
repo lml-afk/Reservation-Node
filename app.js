@@ -42,7 +42,7 @@ app.post('/reservations/register',function (req, res) {
         if (user) {
             console.log('Username already registered');
             res.json('User already exists');
-        }
+        }else{
         let new_user = new user_model({
             name: user_name.toLowerCase(),
             age: user_age,
@@ -51,7 +51,7 @@ app.post('/reservations/register',function (req, res) {
         new_user.save().then(() => {
             console.log('user added');
             res.json(new_user);   
-        });
+        })};
     });
 });
                 //get reservations html
