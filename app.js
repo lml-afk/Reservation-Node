@@ -15,9 +15,11 @@ app.use(body_parser.urlencoded({
     extended: true
 }));
 
+            //models
 const user_model = require('./models/user_model');
 const reservation_model = require('./models/reservation_model');
 
+            //registration get
 app.get('/reservations/register', function(req,res){
     const html = '<form action="/reservations/register" method="POST">'+
     'Enter username:' + 
@@ -28,13 +30,12 @@ app.get('/reservations/register', function(req,res){
     '<button type="submit">submit</button>\n</form>'
     res.send(html);
 });
-
+            //registration post
 app.post('/reservations/register',function (req, res) {
     const user_name = req.body.user_name;
     const user_age = req.body.age;
 
-    console.log(req.body);
-
+        //check if username exists
     user_model.findOne({
         name: user_name
     }).then((user) => {
@@ -53,7 +54,7 @@ app.post('/reservations/register',function (req, res) {
         });
     });
 });
-
+                //get reservations html
 app.get('/reservations/reservation',function (req,res) {
     const html = '<form action="/reservations/reservation" method="POST">'+
     'Enter username:' + 
@@ -67,10 +68,10 @@ app.get('/reservations/reservation',function (req,res) {
     res.send(html);
 
 })
-
+                //make a reservation for a user
 app.post('/reservations/reservation',function (req, res){
 
-    const user_name = req.body.user_name;
+    const user_name = req.body.user_name.toLowerCase();
     const eventname =  req.body.eventname;
     const start_time = req.body.start_time;
     
@@ -98,7 +99,7 @@ app.post('/reservations/reservation',function (req, res){
     })
 })
 
-
+            //find specific users reservations
 app.get('/reservations/user',function (req, res){
         const user_name = req.body.user_name;
 
@@ -115,7 +116,7 @@ app.get('/reservations/user',function (req, res){
             }
         })
 });
-
+            // find all reservations
 app.get('/reservations/all_reservations', async function(req,res){
       
     MongoClient.connect(mongoose_url, function(err, db) {
@@ -128,19 +129,20 @@ app.get('/reservations/all_reservations', async function(req,res){
         });
       }); 
 })
-
+            // find users in the range of low and high age
 app.get('/reservations/users_age', function(req,res){
 
         const age_low = req.body.age_low;
         const age_high = req.body.age_high;
   
-        user_model.findOne({age:{$gt:age_low, $lt:age_high}},function(err,users){
+        user_model.find({age:{$gt:age_low, $lt:age_high}},function(err,users){
             if(err){
                 return res.json(err)
             }res.json(users)
         })
 })
 
+                //modify reservation time with id
 app.patch('/reservations/update:id', function(req,res){
 
     const id = req.body.reservation_id;
@@ -149,16 +151,7 @@ app.patch('/reservations/update:id', function(req,res){
     const end_time = new Date(time_to_change);
     end_time.setHours(end_time.getHours() +1);
 
-    const merged =[];
-
-        //show original reservation
-    reservation_model.findById(id, function (err, original){
-        if(err){
-            res.send(err);
-        }else{
-            console.log(original)
-            merged.push(original)
-        }}),
+  
 
         reservation_model.findByIdAndUpdate(
         {_id: id},
@@ -170,8 +163,8 @@ app.patch('/reservations/update:id', function(req,res){
             if(err){
                 res.json(err);
             }else{
-                merged.push(result)
-                res.json(merged)
+               
+                res.json(result)
             }}
       );
     });
@@ -236,5 +229,7 @@ mongoose.connect(mongoose_url, {
     console.log('Server running on port:'+PORT);
     app.listen(PORT);
 });
+
+
 
 
